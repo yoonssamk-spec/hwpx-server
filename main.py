@@ -1,3 +1,4 @@
+from fastapi import UploadFile, File
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel, Field
@@ -372,3 +373,59 @@ def build_exam_document(req: BuildExamRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+        UPLOAD_DIR = BASE_DIR / "uploads"
+UPLOAD_DIR.mkdir(exist_ok=True)
+
+@app.post("/files/upload")
+async def upload_file(file: UploadFile = File(...)):
+    file_id = uuid.uuid4().hex
+    file_path = UPLOAD_DIR / f"{file_id}_{file.filename}"
+
+    with open(file_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+
+    return {
+        "file_id": file_id,
+        "filename": file.filename,
+        "stored_path": str(file_path)
+    }
+@app.post("/documents/build-reference")
+def build_from_reference(reference_file_id: str, output_filename: str):
+    try:
+        ensure_hwpxskill_repo()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    ref_files = list(UPLOAD_DIR.glob(f"{reference_file_id}_*"))
+    if not ref_files:
+        raise HTTPException(status_code=404, detail="reference 파일 없음")
+
+    ref_path = ref_files[0]
+
+    final_name = make_unique_name(output_filename)
+    output_path = DOWNLOAD_DIR / final_name
+
+    analyze_script = HWPXSKILL_DIR / "scripts" / "analyze_template.py"
+    build_script = HWPXSKILL_DIR / "scripts" / "build_hwpx.py"
+
+    subprocess.run(
+        ["python", str(analyze_script), str(ref_path)],
+        check=True,
+        cwd=str(HWPXSKILL_DIR)
+    )
+
+    subprocess.run(
+        [
+            "python", str(build_script),
+            "--template", "base",
+            "--output", str(output_path)
+        ],
+        check=True,
+        cwd=str(HWPXSKILL_DIR)
+    )
+
+    return {
+        "status": "succeeded",
+        "download_url": f"{public_base_url()}/downloads/{final_name}"
+    }
