@@ -18,7 +18,9 @@ BASE_DIR = Path(__file__).resolve().parent
 DOWNLOAD_DIR = BASE_DIR / "downloads"
 WORK_DIR = BASE_DIR / "workfiles"
 HWPXSKILL_DIR = BASE_DIR / "hwpxskill"
+UPLOAD_DIR = BASE_DIR / "uploads"
 
+UPLOAD_DIR.mkdir(exist_ok=True)
 DOWNLOAD_DIR.mkdir(exist_ok=True)
 WORK_DIR.mkdir(exist_ok=True)
 
