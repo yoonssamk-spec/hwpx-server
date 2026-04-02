@@ -1,4 +1,3 @@
-from fastapi import UploadFile, File
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel, Field
