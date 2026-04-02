@@ -1,5 +1,5 @@
 from fastapi import UploadFile, File
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
@@ -256,7 +256,20 @@ def health_check():
         "ok": True,
         "version": "1.2.0"
     }
+@app.post("/files/upload")
+async def upload_file(file: UploadFile = File(...)):
+    file_id = uuid.uuid4().hex
+    file_path = UPLOAD_DIR / f"{file_id}_{file.filename}"
 
+    with open(file_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+
+    return {
+        "file_id": file_id,
+        "filename": file.filename,
+        "stored_path": str(file_path)
+    }
 
 @app.get("/downloads/{file_name}")
 def download_generated_file(file_name: str):
