@@ -11,7 +11,7 @@ import shutil
 import zipfile
 from xml.sax.saxutils import escape
 
-app = FastAPI(title="HWPX Document Conversion API", version="1.2.0")
+app = FastAPI(title="HWPX Document Conversion API", version="1.3.0")
 
 BASE_DIR = Path(__file__).resolve().parent
 DOWNLOAD_DIR = BASE_DIR / "downloads"
@@ -253,7 +253,7 @@ def replace_text_in_hwpx(hwpx_path: Path, new_text: str) -> None:
 def health_check():
     return {
         "ok": True,
-        "version": "1.2.0"
+        "version": "1.3.0"
     }
 @app.post("/files/upload")
 async def upload_file(file: UploadFile = File(...)):
